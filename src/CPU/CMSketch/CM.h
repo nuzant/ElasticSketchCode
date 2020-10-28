@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstdint>
 #include "../common/BOBHash32.h"
+#include <iostream>
 
 using namespace std;
 

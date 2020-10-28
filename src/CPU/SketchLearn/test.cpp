@@ -1,14 +1,16 @@
+#include "SmallSketch.h"
+#include "MultiLevelSketch.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
 
-#include "../CMSketch/CM.h"
+#include <iostream>
+
 using namespace std;
 
 #define START_FILE_NO 1
-#define END_FILE_NO 10
-
+#define END_FILE_NO 1
 
 struct FIVE_TUPLE{	char key[13];	};
 typedef vector<FIVE_TUPLE> TRACE;
@@ -39,39 +41,24 @@ int main()
 {
 	ReadInTraces("../../../data/");
 
+	#define KEY_LEN 4
+	#define SK_D 3
+	#define THETA 0.5
+	MultiLevelSketch<KEY_LEN, SK_D> *sketchlearn = NULL;
 
-#define SK_D 3
-	CMSketch<4, SK_D> *cm = NULL;
-
-
-	for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt)
-	{
+	for(int datafileCnt = START_FILE_NO; datafileCnt <= END_FILE_NO; ++datafileCnt){
 		unordered_map<string, int> Real_Freq;
-		cm = new CMSketch<4, SK_D>(600 * 1024);
+		sketchlearn = new MultiLevelSketch<KEY_LEN, SK_D>(10 * 1024); // 600 * 1024 / 12
 
 		int packet_cnt = (int)traces[datafileCnt - 1].size();
 		for(int i = 0; i < packet_cnt; ++i)
 		{
-			cm->insert((uint8_t*)(traces[datafileCnt - 1][i].key));
-
+			sketchlearn->insert((uint8_t*)(traces[datafileCnt - 1][i].key));
 			string str((const char*)(traces[datafileCnt - 1][i].key), 4);
 			Real_Freq[str]++;
 		}
 
-		double ARE = 0;
-		for(unordered_map<string, int>::iterator it = Real_Freq.begin(); it != Real_Freq.end(); ++it)
-		{
-			uint8_t key[4];
-			memcpy(key, (it->first).c_str(), 4);
-			int est_val = cm->query(key);
-			int dist = std::abs(it->second - est_val);
-			ARE += dist * 1.0 / (it->second);
-		}
-		ARE /= (int)Real_Freq.size();
-
-		printf("%d.dat: ARE=%.3lf\n", datafileCnt - 1, ARE);
-
-		delete cm;
-		Real_Freq.clear();
+		// sketchlearn -> model_inference(THETA);
 	}
+
 }	
